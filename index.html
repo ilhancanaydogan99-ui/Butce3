@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bütçem">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>Bütçem</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#101827;background:#f4f6f8}
+*{box-sizing:border-box}body{margin:0}.app{max-width:520px;margin:auto;min-height:100vh;background:#fff;padding:env(safe-area-inset-top) 18px calc(88px + env(safe-area-inset-bottom))}
+.top{padding:24px 2px 12px}.muted{color:#7b8494;font-size:13px}.month{font-size:17px;font-weight:800}
+.balance{background:#101827;color:#fff;border-radius:22px;padding:22px}.balance h1{font-size:34px;margin:7px 0 16px}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{background:#ffffff12;border-radius:15px;padding:13px}.metric b{display:block;margin-top:5px}
+.section{margin-top:22px}.section h2{font-size:18px;margin:0 0 10px}.card{border:1px solid #e7ebef;border-radius:16px;padding:14px;margin:9px 0}
+.line{display:grid;grid-template-columns:1fr 130px;gap:10px;align-items:center}.line b{font-size:15px}.date{font-size:12px;color:#8a93a2;margin-top:3px}
+.moneyInput{width:100%;border:1px solid #dfe3e8;border-radius:11px;padding:11px;text-align:right;font-size:16px}
+.green{color:#138a5b}.red{color:#d14949}.btn{width:100%;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px}
+.primary{background:#101827;color:#fff}.soft{background:#eef1f5;color:#101827;margin-top:8px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #edf0f3;gap:10px}.del{border:0;background:#f8eaea;color:#b83939;border-radius:9px;padding:7px 9px;margin-left:8px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);display:grid;grid-template-columns:1fr 1fr;background:#fff;border-top:1px solid #e8ebef;padding:10px 18px calc(10px + env(safe-area-inset-bottom));z-index:3}
+.nav button{border:0;background:none;font-weight:800;color:#687284;padding:10px}.history{display:none}.history.active,.home.active{display:block}.home{display:none}
+.histcard{background:#f6f7f9;border-radius:16px;padding:16px;margin:10px 0}.histline{display:flex;justify-content:space-between;margin-top:8px}
+.sheet{position:fixed;inset:0;background:#0007;display:none;align-items:flex-end;z-index:5}.sheet.open{display:flex}
+.panel{background:#fff;width:min(520px,100%);margin:auto;border-radius:24px 24px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom))}
+.field{margin:11px 0}.field label{display:block;font-size:12px;color:#6f7887;margin-bottom:5px}.field input,.field select{width:100%;border:1px solid #dfe3e8;border-radius:12px;padding:13px;font-size:16px;background:#fff}
+.close{float:right;border:0;background:#eef1f5;border-radius:50%;width:32px;height:32px}
+</style>
+</head>
+<body>
+<main class="app">
+<section id="home" class="home active">
+<div class="top"><div class="muted">Kişisel bütçen</div><div id="monthLabel" class="month"></div></div>
+<div class="balance"><small>Bu Ay Kalan</small><h1 id="balance">₺0</h1><div class="twocol"><div class="metric"><span>Toplam Gelir</span><b id="incomeTotal">₺0</b></div><div class="metric"><span>Toplam Gider</span><b id="expenseTotal">₺0</b></div></div></div>
+<div class="section"><h2>Gelirler</h2>
+<div class="card"><div class="line"><div><b>Yemek Ücreti</b><div class="date">Her ayın 1'i</div></div><input class="moneyInput" id="food" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
+<div class="card"><div class="line"><div><b>Maaş</b><div class="date">Her ayın 10'u</div></div><input class="moneyInput" id="salary" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
+<div class="card"><div class="line"><div><b>Prim</b><div class="date">Her ayın 25'i</div></div><input class="moneyInput" id="bonus" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
+<button class="btn primary" onclick="saveIncome()">Gelirleri Kaydet</button></div>
+<div class="section"><h2>Giderler</h2><div id="expenseList"></div>
+<button class="btn soft" onclick="openExpense('Kredi Kartı Borcu')">+ Kart Borcu Ekle</button>
+<button class="btn soft" onclick="openExpense('Nakit Harcama')">+ Nakit Harcama Ekle</button>
+<button class="btn soft" onclick="openExpense('Diğer Gider')">+ Diğer Gider Ekle</button></div>
+</section>
+<section id="history" class="history"><div class="top"><div class="muted">Aylık özetler</div><h2>Geçmiş Aylar</h2></div><div id="historyList"></div></section>
+</main>
+<nav class="nav"><button onclick="showTab('home')">Ana Sayfa</button><button onclick="showTab('history')">Geçmiş Aylar</button></nav>
+<div id="sheet" class="sheet" onclick="if(event.target===this)closeSheet()"><div class="panel"><button class="close" onclick="closeSheet()">×</button><h3>Gider Ekle</h3>
+<div class="field"><label>Gider türü</label><select id="expenseType"><option>Kredi Kartı Borcu</option><option>Nakit Harcama</option><option>Diğer Gider</option></select></div>
+<div class="field"><label>Açıklama</label><input id="expenseName" placeholder="Örn. Garanti kartı"></div>
+<div class="field"><label>Tutar (TL)</label><input id="expenseAmount" type="number" inputmode="decimal" placeholder="0"></div>
+<div class="field"><label>Tarih</label><input id="expenseDate" type="date"></div>
+<button class="btn primary" onclick="saveExpense()">Kaydet</button></div></div>
+<script>
+const months=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+let db=JSON.parse(localStorage.getItem("butcem-v2")||"{}");
+function ck(){let d=new Date(),m=String(d.getMonth()+1).padStart(2,"0");return d.getFullYear()+"-"+m}
+function ensure(k){if(!db[k])db[k]={income:{food:0,salary:0,bonus:0},expenses:[]};return db[k]}
+function persist(){localStorage.setItem("butcem-v2",JSON.stringify(db))}
+function money(n){return new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY",maximumFractionDigits:0}).format(Number(n)||0)}
+function render(){
+ let k=ck(),d=ensure(k),parts=k.split("-");
+ document.getElementById("monthLabel").textContent=months[+parts[1]-1]+" "+parts[0];
+ document.getElementById("food").value=d.income.food||"";
+ document.getElementById("salary").value=d.income.salary||"";
+ document.getElementById("bonus").value=d.income.bonus||"";
+ let inc=Number(d.income.food||0)+Number(d.income.salary||0)+Number(d.income.bonus||0),exp=d.expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+ document.getElementById("incomeTotal").textContent=money(inc);document.getElementById("expenseTotal").textContent=money(exp);document.getElementById("balance").textContent=money(inc-exp);
+ document.getElementById("expenseList").innerHTML=d.expenses.length?d.expenses.map((x,i)=>'<div class="row"><div><b>'+escapeHtml(x.name||x.type)+'</b><div class="date">'+escapeHtml(x.type)+' · '+new Date(x.date+"T12:00").toLocaleDateString("tr-TR")+'</div></div><div><b class="red">− '+money(x.amount)+'</b><button class="del" onclick="removeExpense('+i+')">Sil</button></div></div>').join(""):'<div class="muted" style="padding:12px 0">Henüz gider girilmedi.</div>';
+ renderHistory()
+}
+function saveIncome(){let d=ensure(ck());d.income={food:Number(food.value)||0,salary:Number(salary.value)||0,bonus:Number(bonus.value)||0};persist();render()}
+function openExpense(t){expenseType.value=t;expenseName.value="";expenseAmount.value="";expenseDate.value=new Date().toISOString().slice(0,10);sheet.classList.add("open")}
+function closeSheet(){sheet.classList.remove("open")}
+function saveExpense(){let a=Number(expenseAmount.value);if(!a||a<=0||!expenseDate.value)return alert("Tutar ve tarih gir.");let d=ensure(ck());d.expenses.push({type:expenseType.value,name:expenseName.value.trim()||expenseType.value,amount:a,date:expenseDate.value});persist();closeSheet();render()}
+function removeExpense(i){ensure(ck()).expenses.splice(i,1);persist();render()}
+function renderHistory(){let ks=Object.keys(db).sort().reverse();historyList.innerHTML=ks.map(k=>{let d=db[k],p=k.split("-"),inc=Number(d.income?.food||0)+Number(d.income?.salary||0)+Number(d.income?.bonus||0),exp=(d.expenses||[]).reduce((s,x)=>s+Number(x.amount||0),0);return '<div class="histcard"><b>'+months[+p[1]-1]+' '+p[0]+'</b><div class="histline"><span>Gelir</span><b class="green">'+money(inc)+'</b></div><div class="histline"><span>Gider</span><b class="red">'+money(exp)+'</b></div><div class="histline"><span>Kalan</span><b>'+money(inc-exp)+'</b></div></div>'}).join("")||'<div class="muted">Henüz geçmiş veri yok.</div>'}
+function showTab(t){home.classList.toggle("active",t==="home");history.classList.toggle("active",t==="history");if(t==="history")renderHistory()}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+render();if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
+</script>
+</body></html>
