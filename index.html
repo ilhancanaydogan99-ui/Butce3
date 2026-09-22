@@ -11,16 +11,19 @@
 <title>Bütçem</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#101827;background:#f4f6f8}
-*{box-sizing:border-box}body{margin:0}.app{max-width:520px;margin:auto;min-height:100vh;background:#fff;padding:env(safe-area-inset-top) 18px calc(88px + env(safe-area-inset-bottom))}
+*{box-sizing:border-box}body{margin:0}.app{max-width:520px;margin:auto;min-height:100vh;background:#fff;padding:env(safe-area-inset-top) 18px calc(92px + env(safe-area-inset-bottom))}
 .top{padding:24px 2px 12px}.muted{color:#7b8494;font-size:13px}.month{font-size:17px;font-weight:800}
 .balance{background:#101827;color:#fff;border-radius:22px;padding:22px}.balance h1{font-size:34px;margin:7px 0 16px}
-.twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{background:#ffffff12;border-radius:15px;padding:13px}.metric b{display:block;margin-top:5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{background:#ffffff12;border-radius:15px;padding:13px}.metric span{font-size:12px;color:#d5dae1}.metric b{display:block;margin-top:5px}
+.forecast{margin-top:12px;background:#f4f6f8;border-radius:18px;padding:16px}.forecast-main{display:flex;justify-content:space-between;gap:12px;align-items:flex-end}.forecast-main b{font-size:24px}
+.forecast-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.forecast-item{background:#fff;border-radius:13px;padding:11px}.forecast-item small{display:block;color:#7b8494}.forecast-item b{display:block;margin-top:4px}
 .section{margin-top:22px}.section h2{font-size:18px;margin:0 0 10px}.card{border:1px solid #e7ebef;border-radius:16px;padding:14px;margin:9px 0}
-.line{display:grid;grid-template-columns:1fr 130px;gap:10px;align-items:center}.line b{font-size:15px}.date{font-size:12px;color:#8a93a2;margin-top:3px}
+.line{display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center}.line b{font-size:15px}.date{font-size:12px;color:#8a93a2;margin-top:3px}
 .moneyInput{width:100%;border:1px solid #dfe3e8;border-radius:11px;padding:11px;text-align:right;font-size:16px}
-.green{color:#138a5b}.red{color:#d14949}.btn{width:100%;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px}
+.status{border:0;border-radius:999px;padding:7px 10px;font-weight:800;font-size:11px;margin-top:9px}.pending{background:#fff2cf;color:#8b6200}.done{background:#dff5e9;color:#13784f}
+.green{color:#138a5b}.red{color:#d14949}.orange{color:#9a6b00}.btn{width:100%;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px}
 .primary{background:#101827;color:#fff}.soft{background:#eef1f5;color:#101827;margin-top:8px}
-.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #edf0f3;gap:10px}.del{border:0;background:#f8eaea;color:#b83939;border-radius:9px;padding:7px 9px;margin-left:8px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #edf0f3;gap:10px}.rowRight{text-align:right;min-width:120px}.actions{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}.mini{border:0;border-radius:8px;padding:6px 8px;font-size:11px;font-weight:800}.pay{background:#dff5e9;color:#13784f}.undo{background:#fff2cf;color:#8b6200}.del{background:#f8eaea;color:#b83939}
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);display:grid;grid-template-columns:1fr 1fr;background:#fff;border-top:1px solid #e8ebef;padding:10px 18px calc(10px + env(safe-area-inset-bottom));z-index:3}
 .nav button{border:0;background:none;font-weight:800;color:#687284;padding:10px}.history{display:none}.history.active,.home.active{display:block}.home{display:none}
 .histcard{background:#f6f7f9;border-radius:16px;padding:16px;margin:10px 0}.histline{display:flex;justify-content:space-between;margin-top:8px}
@@ -28,58 +31,145 @@
 .panel{background:#fff;width:min(520px,100%);margin:auto;border-radius:24px 24px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom))}
 .field{margin:11px 0}.field label{display:block;font-size:12px;color:#6f7887;margin-bottom:5px}.field input,.field select{width:100%;border:1px solid #dfe3e8;border-radius:12px;padding:13px;font-size:16px;background:#fff}
 .close{float:right;border:0;background:#eef1f5;border-radius:50%;width:32px;height:32px}
+.note{font-size:12px;color:#7b8494;line-height:1.4;margin-top:10px}
 </style>
 </head>
 <body>
 <main class="app">
 <section id="home" class="home active">
 <div class="top"><div class="muted">Kişisel bütçen</div><div id="monthLabel" class="month"></div></div>
-<div class="balance"><small>Bu Ay Kalan</small><h1 id="balance">₺0</h1><div class="twocol"><div class="metric"><span>Toplam Gelir</span><b id="incomeTotal">₺0</b></div><div class="metric"><span>Toplam Gider</span><b id="expenseTotal">₺0</b></div></div></div>
+
+<div class="balance">
+<small>Şu Anki Bakiye</small><h1 id="currentBalance">₺0</h1>
+<div class="grid2">
+<div class="metric"><span>Alınan Gelir</span><b id="receivedIncome">₺0</b></div>
+<div class="metric"><span>Ödenen Gider</span><b id="paidExpense">₺0</b></div>
+</div>
+</div>
+
+<div class="forecast">
+<div class="forecast-main"><div><div class="muted">Ay Sonu Tahmini</div><div class="note">Beklenen gelir ve ödemeler dahil</div></div><b id="forecastBalance">₺0</b></div>
+<div class="forecast-grid">
+<div class="forecast-item"><small>Beklenen Gelir</small><b class="green" id="pendingIncome">₺0</b></div>
+<div class="forecast-item"><small>Bekleyen Ödeme</small><b class="red" id="pendingExpense">₺0</b></div>
+</div>
+<div class="forecast-item" style="margin-top:9px"><small>Güvenli Harcanabilir Tutar</small><b id="safeSpend">₺0</b></div>
+</div>
+
 <div class="section"><h2>Gelirler</h2>
-<div class="card"><div class="line"><div><b>Yemek Ücreti</b><div class="date">Her ayın 1'i</div></div><input class="moneyInput" id="food" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
-<div class="card"><div class="line"><div><b>Maaş</b><div class="date">Her ayın 10'u</div></div><input class="moneyInput" id="salary" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
-<div class="card"><div class="line"><div><b>Prim</b><div class="date">Her ayın 25'i</div></div><input class="moneyInput" id="bonus" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
-<button class="btn primary" onclick="saveIncome()">Gelirleri Kaydet</button></div>
+<div class="card"><div class="line"><div><b>Yemek Ücreti</b><div class="date">Her ayın 1'i</div><button id="foodStatus" class="status pending" onclick="toggleIncome('food')">Bekleniyor</button></div><input class="moneyInput" id="food" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
+<div class="card"><div class="line"><div><b>Maaş</b><div class="date">Her ayın 10'u</div><button id="salaryStatus" class="status pending" onclick="toggleIncome('salary')">Bekleniyor</button></div><input class="moneyInput" id="salary" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
+<div class="card"><div class="line"><div><b>Prim</b><div class="date">Her ayın 25'i</div><button id="bonusStatus" class="status pending" onclick="toggleIncome('bonus')">Bekleniyor</button></div><input class="moneyInput" id="bonus" type="number" inputmode="decimal" placeholder="0 TL"></div></div>
+<button class="btn primary" onclick="saveIncome()">Gelir Tutarlarını Kaydet</button>
+<div class="note">Para hesabına geçtiğinde ilgili kalemde “Bekleniyor” düğmesine dokunup “Alındı” yap.</div>
+</div>
+
 <div class="section"><h2>Giderler</h2><div id="expenseList"></div>
-<button class="btn soft" onclick="openExpense('Kredi Kartı Borcu')">+ Kart Borcu Ekle</button>
+<button class="btn soft" onclick="openExpense('Kredi Kartı Borcu')">+ Kart Borcu / Ödeme Ekle</button>
 <button class="btn soft" onclick="openExpense('Nakit Harcama')">+ Nakit Harcama Ekle</button>
 <button class="btn soft" onclick="openExpense('Diğer Gider')">+ Diğer Gider Ekle</button></div>
 </section>
+
 <section id="history" class="history"><div class="top"><div class="muted">Aylık özetler</div><h2>Geçmiş Aylar</h2></div><div id="historyList"></div></section>
 </main>
+
 <nav class="nav"><button onclick="showTab('home')">Ana Sayfa</button><button onclick="showTab('history')">Geçmiş Aylar</button></nav>
+
 <div id="sheet" class="sheet" onclick="if(event.target===this)closeSheet()"><div class="panel"><button class="close" onclick="closeSheet()">×</button><h3>Gider Ekle</h3>
 <div class="field"><label>Gider türü</label><select id="expenseType"><option>Kredi Kartı Borcu</option><option>Nakit Harcama</option><option>Diğer Gider</option></select></div>
 <div class="field"><label>Açıklama</label><input id="expenseName" placeholder="Örn. Garanti kartı"></div>
 <div class="field"><label>Tutar (TL)</label><input id="expenseAmount" type="number" inputmode="decimal" placeholder="0"></div>
-<div class="field"><label>Tarih</label><input id="expenseDate" type="date"></div>
+<div class="field"><label>Ödeme tarihi</label><input id="expenseDate" type="date"></div>
+<div class="field"><label>Durum</label><select id="expensePaid"><option value="false">Ödenecek</option><option value="true">Ödendi</option></select></div>
 <button class="btn primary" onclick="saveExpense()">Kaydet</button></div></div>
+
 <script>
 const months=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
 let db=JSON.parse(localStorage.getItem("butcem-v2")||"{}");
+
 function ck(){let d=new Date(),m=String(d.getMonth()+1).padStart(2,"0");return d.getFullYear()+"-"+m}
-function ensure(k){if(!db[k])db[k]={income:{food:0,salary:0,bonus:0},expenses:[]};return db[k]}
+function ensure(k){
+ if(!db[k])db[k]={income:{food:0,salary:0,bonus:0},expenses:[]};
+ let d=db[k];
+ if(!d.income)d.income={food:0,salary:0,bonus:0};
+ if(!d.incomeStatus)d.incomeStatus={food:false,salary:false,bonus:false};
+ if(!Array.isArray(d.expenses))d.expenses=[];
+ d.expenses=d.expenses.map(x=>({...x,paid:x.paid===true}));
+ return d
+}
 function persist(){localStorage.setItem("butcem-v2",JSON.stringify(db))}
 function money(n){return new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY",maximumFractionDigits:0}).format(Number(n)||0)}
+function el(id){return document.getElementById(id)}
+function totals(d){
+ const keys=["food","salary","bonus"];
+ const plannedIncome=keys.reduce((s,k)=>s+Number(d.income[k]||0),0);
+ const received=keys.reduce((s,k)=>s+(d.incomeStatus[k]?Number(d.income[k]||0):0),0);
+ const pendingIncome=plannedIncome-received;
+ const plannedExpense=d.expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+ const paid=d.expenses.reduce((s,x)=>s+(x.paid?Number(x.amount||0):0),0);
+ const pendingExpense=plannedExpense-paid;
+ const current=received-paid;
+ const forecast=plannedIncome-plannedExpense;
+ const safe=Math.max(0,current-pendingExpense);
+ return {plannedIncome,received,pendingIncome,plannedExpense,paid,pendingExpense,current,forecast,safe}
+}
+function setStatus(id,done,doneText,pendingText){
+ const b=el(id);b.textContent=done?doneText:pendingText;b.className="status "+(done?"done":"pending")
+}
 function render(){
  let k=ck(),d=ensure(k),parts=k.split("-");
- document.getElementById("monthLabel").textContent=months[+parts[1]-1]+" "+parts[0];
- document.getElementById("food").value=d.income.food||"";
- document.getElementById("salary").value=d.income.salary||"";
- document.getElementById("bonus").value=d.income.bonus||"";
- let inc=Number(d.income.food||0)+Number(d.income.salary||0)+Number(d.income.bonus||0),exp=d.expenses.reduce((s,x)=>s+Number(x.amount||0),0);
- document.getElementById("incomeTotal").textContent=money(inc);document.getElementById("expenseTotal").textContent=money(exp);document.getElementById("balance").textContent=money(inc-exp);
- document.getElementById("expenseList").innerHTML=d.expenses.length?d.expenses.map((x,i)=>'<div class="row"><div><b>'+escapeHtml(x.name||x.type)+'</b><div class="date">'+escapeHtml(x.type)+' · '+new Date(x.date+"T12:00").toLocaleDateString("tr-TR")+'</div></div><div><b class="red">− '+money(x.amount)+'</b><button class="del" onclick="removeExpense('+i+')">Sil</button></div></div>').join(""):'<div class="muted" style="padding:12px 0">Henüz gider girilmedi.</div>';
- renderHistory()
+ el("monthLabel").textContent=months[+parts[1]-1]+" "+parts[0];
+ ["food","salary","bonus"].forEach(x=>el(x).value=d.income[x]||"");
+ setStatus("foodStatus",d.incomeStatus.food,"Alındı","Bekleniyor");
+ setStatus("salaryStatus",d.incomeStatus.salary,"Alındı","Bekleniyor");
+ setStatus("bonusStatus",d.incomeStatus.bonus,"Alındı","Bekleniyor");
+ let t=totals(d);
+ el("receivedIncome").textContent=money(t.received);
+ el("paidExpense").textContent=money(t.paid);
+ el("currentBalance").textContent=money(t.current);
+ el("pendingIncome").textContent="+ "+money(t.pendingIncome);
+ el("pendingExpense").textContent="− "+money(t.pendingExpense);
+ el("forecastBalance").textContent=money(t.forecast);
+ el("safeSpend").textContent=money(t.safe);
+ el("expenseList").innerHTML=d.expenses.length?d.expenses.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(x=>{
+   let i=d.expenses.indexOf(x);
+   return '<div class="row"><div><b>'+escapeHtml(x.name||x.type)+'</b><div class="date">'+escapeHtml(x.type)+' · '+new Date(x.date+"T12:00").toLocaleDateString("tr-TR")+'</div><button class="status '+(x.paid?'done':'pending')+'" onclick="toggleExpense('+i+')">'+(x.paid?'Ödendi':'Ödenecek')+'</button></div><div class="rowRight"><b class="red">− '+money(x.amount)+'</b><div class="actions"><button class="mini '+(x.paid?'undo':'pay')+'" onclick="toggleExpense('+i+')">'+(x.paid?'Geri Al':'Ödendi Yap')+'</button><button class="mini del" onclick="removeExpense('+i+')">Sil</button></div></div></div>'
+ }).join(""):'<div class="muted" style="padding:12px 0">Henüz gider girilmedi.</div>';
+ persist();renderHistory()
 }
-function saveIncome(){let d=ensure(ck());d.income={food:Number(food.value)||0,salary:Number(salary.value)||0,bonus:Number(bonus.value)||0};persist();render()}
-function openExpense(t){expenseType.value=t;expenseName.value="";expenseAmount.value="";expenseDate.value=new Date().toISOString().slice(0,10);sheet.classList.add("open")}
-function closeSheet(){sheet.classList.remove("open")}
-function saveExpense(){let a=Number(expenseAmount.value);if(!a||a<=0||!expenseDate.value)return alert("Tutar ve tarih gir.");let d=ensure(ck());d.expenses.push({type:expenseType.value,name:expenseName.value.trim()||expenseType.value,amount:a,date:expenseDate.value});persist();closeSheet();render()}
-function removeExpense(i){ensure(ck()).expenses.splice(i,1);persist();render()}
-function renderHistory(){let ks=Object.keys(db).sort().reverse();historyList.innerHTML=ks.map(k=>{let d=db[k],p=k.split("-"),inc=Number(d.income?.food||0)+Number(d.income?.salary||0)+Number(d.income?.bonus||0),exp=(d.expenses||[]).reduce((s,x)=>s+Number(x.amount||0),0);return '<div class="histcard"><b>'+months[+p[1]-1]+' '+p[0]+'</b><div class="histline"><span>Gelir</span><b class="green">'+money(inc)+'</b></div><div class="histline"><span>Gider</span><b class="red">'+money(exp)+'</b></div><div class="histline"><span>Kalan</span><b>'+money(inc-exp)+'</b></div></div>'}).join("")||'<div class="muted">Henüz geçmiş veri yok.</div>'}
-function showTab(t){home.classList.toggle("active",t==="home");history.classList.toggle("active",t==="history");if(t==="history")renderHistory()}
+function saveIncome(){
+ let d=ensure(ck());
+ ["food","salary","bonus"].forEach(x=>d.income[x]=Number(el(x).value)||0);
+ persist();render()
+}
+function toggleIncome(k){saveIncome();let d=ensure(ck());d.incomeStatus[k]=!d.incomeStatus[k];persist();render()}
+function openExpense(t){
+ el("expenseType").value=t;el("expenseName").value="";el("expenseAmount").value="";
+ let now=new Date();el("expenseDate").value=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+ el("expensePaid").value="false";el("sheet").classList.add("open")
+}
+function closeSheet(){el("sheet").classList.remove("open")}
+function saveExpense(){
+ let a=Number(el("expenseAmount").value),date=el("expenseDate").value;
+ if(!a||a<=0||!date)return alert("Tutar ve tarih gir.");
+ let month=date.slice(0,7),d=ensure(month);
+ d.expenses.push({type:el("expenseType").value,name:el("expenseName").value.trim()||el("expenseType").value,amount:a,date:date,paid:el("expensePaid").value==="true"});
+ persist();closeSheet();render();
+ if(month!==ck())alert("Gider, seçtiğin tarihin ayına kaydedildi.")
+}
+function toggleExpense(i){let d=ensure(ck());if(!d.expenses[i])return;d.expenses[i].paid=!d.expenses[i].paid;persist();render()}
+function removeExpense(i){let d=ensure(ck());d.expenses.splice(i,1);persist();render()}
+function renderHistory(){
+ let ks=Object.keys(db).sort().reverse();
+ el("historyList").innerHTML=ks.map(k=>{
+   let d=ensure(k),p=k.split("-"),t=totals(d);
+   return '<div class="histcard"><b>'+months[+p[1]-1]+' '+p[0]+'</b><div class="histline"><span>Planlanan gelir</span><b class="green">'+money(t.plannedIncome)+'</b></div><div class="histline"><span>Planlanan gider</span><b class="red">'+money(t.plannedExpense)+'</b></div><div class="histline"><span>Ay sonu tahmini</span><b>'+money(t.forecast)+'</b></div></div>'
+ }).join("")||'<div class="muted">Henüz geçmiş veri yok.</div>'
+}
+function showTab(t){el("home").classList.toggle("active",t==="home");el("history").classList.toggle("active",t==="history");if(t==="history")renderHistory()}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-render();if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
+render();
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
 </script>
-</body></html>
+</body>
+</html>
